@@ -1,8 +1,6 @@
 import {
   Dictionary,
-  forEach,
   get,
-  keys,
   last,
   merge,
   reduce,
@@ -68,15 +66,20 @@ class Stops {
     }
   }
 
-  findRoute(start: string, end: string) {
-    forEach(this.links, (link: any) => {
-      forEach(keys(this.links[start]), (key: string) => {
-        if (!link[key] || link[key] === link[end]) {
+  findRoutes(start: string, callback: any) {
+    const res: any[][] = [];
+    const calc = (links: any, routes: any[]) => {
+      for (const key in links) {
+        const arr = routes.concat(key);
+        if (callback(key, arr)) {
+          res.push(arr);
           return;
         }
-        return this.findRoute(key, end);
-      })
-    });
+        calc(this.links[key], arr);
+      }
+    };
+    calc(this.links[start], [start]);
+    return res;
   }
 }
 
@@ -89,5 +92,11 @@ console.log('4: A_E_B_C_D', stops.calcRoutesDistance('A-E-B-C-D'));
 console.log('5: A_E_D', stops.calcRoutesDistance('A-E-D'));
 console.log('links', stops.links);
 
-console.log('links', stops.findRoute('C', 'C'));
+console.log('minimal routes', stops.findRoutes('C', (key: string) => {
+  return key === 'C';
+}));
+
+console.log('minimal routes', stops.findRoutes('A', (_: any, arr: any[]) => {
+  return arr.length >= 5 && last(arr) === 'C';
+}));
 
